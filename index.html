@@ -14,7 +14,7 @@
 <body class="bg-neutral-950 text-white font-sans overflow-x-hidden">
     <div class="max-w-[420px] mx-auto min-h-screen bg-neutral-950 flex flex-col shadow-2xl relative">
         
-        <!-- HEADER (unchanged) -->
+        <!-- HEADER -->
         <div class="bg-gradient-to-br from-teal-600 via-cyan-600 to-emerald-600 px-6 pt-10 pb-8">
             <div class="flex justify-between items-start">
                 <div>
@@ -27,44 +27,165 @@
                 </div>
             </div>
             
+            <!-- BALANCE -->
             <div class="mt-10 text-center">
                 <p class="text-teal-200 text-sm font-medium tracking-widest">THIS MONTH</p>
                 <p id="balance" class="text-6xl font-semibold tabular-nums mt-1 text-white">$0</p>
                 <div class="flex justify-center gap-8 mt-3 text-xs">
-                    <div><span class="text-emerald-400">▲</span> <span id="income-total" class="font-medium">$0</span></div>
-                    <div><span class="text-rose-400">▼</span> <span id="expense-total" class="font-medium">$0</span></div>
+                    <div>
+                        <span class="text-emerald-400">▲</span> 
+                        <span id="income-total" class="font-medium">$0</span>
+                    </div>
+                    <div>
+                        <span class="text-rose-400">▼</span> 
+                        <span id="expense-total" class="font-medium">$0</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- MAIN CONTENT (unchanged except toast added at bottom) -->
+        <!-- MAIN CONTENT -->
         <div id="main-content" class="flex-1 overflow-y-auto pb-24 px-5 pt-6">
-            <!-- All tabs same as before -->
-            <div id="tab-overview" class="tab-content">... (same)</div>
-            <div id="tab-transactions" class="tab-content hidden">... (same)</div>
+            
+            <!-- OVERVIEW TAB -->
+            <div id="tab-overview" class="tab-content">
+                <!-- Quick Categories -->
+                <div class="grid grid-cols-4 gap-3 mb-8" id="quick-categories">
+                    <!-- JS populated -->
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-4 px-1">
+                        <p class="uppercase text-xs tracking-widest font-medium text-neutral-400">Recent</p>
+                    </div>
+                    <div id="recent-list" class="space-y-3">
+                        <!-- JS -->
+                    </div>
+                </div>
+
+                <!-- Monthly Breakdown -->
+                <div class="bg-neutral-900 rounded-3xl p-6">
+                    <p class="text-xs uppercase tracking-widest text-neutral-400 mb-4">Where your money went</p>
+                    <div id="category-breakdown" class="space-y-5">
+                        <!-- JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSACTIONS TAB -->
+            <div id="tab-transactions" class="tab-content hidden">
+                <div class="relative mb-6">
+                    <input id="search-input" 
+                           onkeyup="filterTransactions()"
+                           class="w-full bg-neutral-900 border border-white/10 focus:border-teal-500 rounded-3xl px-6 py-4 text-base outline-none placeholder:text-neutral-500"
+                           placeholder="Search transactions...">
+                </div>
+                <div id="full-transaction-list" class="space-y-3 pb-12">
+                    <!-- JS -->
+                </div>
+            </div>
+
+            <!-- BUDGET TAB -->
             <div id="tab-budget" class="tab-content hidden">
                 <h2 class="text-2xl font-semibold px-2 mb-6">Monthly Budgets</h2>
-                <div id="budget-list" class="space-y-6"></div>
-                <!-- FIXED RESET BUTTON -->
+                <div id="budget-list" class="space-y-6">
+                    <!-- JS -->
+                </div>
                 <button onclick="resetBudgets()" 
-                        class="mt-8 w-full py-4 bg-neutral-800 hover:bg-neutral-700 active:bg-neutral-600 transition-all text-xs font-medium rounded-3xl">
+                        class="mt-10 w-full py-5 bg-neutral-800 hover:bg-neutral-700 active:bg-red-950 transition-all rounded-3xl text-sm font-medium border border-red-500/20">
                     RESET ALL BUDGETS TO DEFAULT
                 </button>
             </div>
-            <div id="tab-insights" class="tab-content hidden">... (same)</div>
+
+            <!-- INSIGHTS TAB -->
+            <div id="tab-insights" class="tab-content hidden">
+                <div class="bg-neutral-900 rounded-3xl p-6 mb-8">
+                    <p class="text-xs uppercase tracking-widest mb-6">Spending by category</p>
+                    <div class="relative w-56 h-56 mx-auto">
+                        <div id="pie-chart" 
+                             class="w-56 h-56 rounded-full"
+                             style="background: conic-gradient(#14b8a6 0deg 90deg, #22d3ee 90deg 170deg, #f43f5e 170deg 240deg, #a78bfa 240deg 310deg, #eab308 310deg 360deg);">
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-5xl font-bold" id="spent-this-month">$0</div>
+                                <div class="text-xs text-neutral-400">spent</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-neutral-900 rounded-3xl p-6">
+                        <p class="text-xs text-neutral-400">BIGGEST SPEND</p>
+                        <p id="biggest-spend" class="text-4xl font-semibold mt-4">—</p>
+                        <p id="biggest-amount" class="text-5xl font-bold text-rose-400">$0</p>
+                    </div>
+                    <div class="bg-neutral-900 rounded-3xl p-6">
+                        <p class="text-xs text-neutral-400">AVG DAILY</p>
+                        <p id="avg-daily" class="text-4xl font-semibold mt-4">$0</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- BOTTOM NAV (unchanged) -->
+        <!-- BOTTOM NAV -->
         <div class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-[420px] w-full bg-neutral-950 border-t border-white/10 z-50">
-            <!-- same as before -->
+            <div class="flex justify-around items-center py-3 px-6 text-neutral-400">
+                <div onclick="switchTab(0)" id="nav-0" class="nav-item flex flex-col items-center text-teal-400">
+                    <div class="text-2xl mb-0.5">🌊</div>
+                    <div class="text-[10px] font-medium">FLOW</div>
+                </div>
+                <div onclick="switchTab(1)" id="nav-1" class="nav-item flex flex-col items-center">
+                    <div class="text-2xl mb-0.5">📋</div>
+                    <div class="text-[10px] font-medium">LOG</div>
+                </div>
+                <div onclick="switchTab(2)" id="nav-2" class="nav-item flex flex-col items-center">
+                    <div class="text-2xl mb-0.5">📌</div>
+                    <div class="text-[10px] font-medium">BUDGET</div>
+                </div>
+                <div onclick="switchTab(3)" id="nav-3" class="nav-item flex flex-col items-center">
+                    <div class="text-2xl mb-0.5">📈</div>
+                    <div class="text-[10px] font-medium">PULSE</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ADD MODAL (unchanged) -->
+        <!-- ADD TRANSACTION MODAL -->
         <div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-end z-[100]">
-            <!-- same as before -->
+            <div class="bg-neutral-900 w-full max-w-[420px] rounded-t-3xl p-6 pb-8">
+                <h3 class="text-2xl font-semibold mb-6 text-center">New Entry</h3>
+                
+                <div class="flex gap-3 mb-6">
+                    <button onclick="setType(0)" id="type-0"
+                            class="flex-1 py-3 rounded-3xl text-sm font-semibold">INCOME</button>
+                    <button onclick="setType(1)" id="type-1"
+                            class="flex-1 py-3 rounded-3xl text-sm font-semibold">EXPENSE</button>
+                </div>
+                
+                <input id="amount-input" type="number" step="0.01"
+                       class="w-full text-center text-6xl font-semibold bg-transparent outline-none tabular-nums"
+                       placeholder="0" autofocus>
+                
+                <div class="mt-8 grid grid-cols-4 gap-4 text-4xl" id="category-picker">
+                    <!-- JS -->
+                </div>
+                
+                <input id="note-input" 
+                       class="mt-8 w-full bg-neutral-800 border border-white/10 rounded-3xl px-6 py-4 text-base outline-none"
+                       placeholder="Note (coffee, salary...)">
+                
+                <div class="flex gap-4 mt-8">
+                    <button onclick="hideAddModal()" 
+                            class="flex-1 py-5 rounded-3xl border border-white/20 text-sm font-medium">CANCEL</button>
+                    <button onclick="addTransaction()" 
+                            class="flex-1 py-5 bg-white text-neutral-950 rounded-3xl text-sm font-semibold">ADD TO FLOW</button>
+                </div>
+            </div>
         </div>
 
-        <!-- NEW TOAST -->
+        <!-- TOAST -->
         <div id="toast" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 max-w-[420px] w-full px-6 z-[200]">
             <div class="bg-neutral-800 text-white text-sm px-6 py-4 rounded-3xl shadow-2xl text-center">
                 <span id="toast-text"></span>
