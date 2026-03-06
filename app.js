@@ -1,12 +1,8 @@
 // app.js
 let transactions = []
 let budgets = {
-    "Food": 350,
-    "Transport": 150,
-    "Shopping": 200,
-    "Bills": 400,
-    "Entertainment": 120,
-    "Health": 80
+    "Food": 350, "Transport": 150, "Shopping": 200,
+    "Bills": 400, "Entertainment": 120, "Health": 80
 }
 
 const categories = [
@@ -37,7 +33,6 @@ function saveData() {
     localStorage.setItem('pulse_budgets', JSON.stringify(budgets))
 }
 
-// Format currency
 function formatMoney(amount) {
     return '$' + Math.abs(amount).toLocaleString('en-US')
 }
@@ -61,12 +56,23 @@ function renderQuickCategories() {
     })
 }
 
-// Render recent
+// Render recent (with empty state)
 function renderRecent() {
     const container = document.getElementById('recent-list')
     container.innerHTML = ''
     
     const recent = [...transactions].reverse().slice(0, 5)
+    
+    if (recent.length === 0) {
+        container.innerHTML = `
+            <div onclick="showAddModal()" class="empty-state rounded-3xl p-8 text-center cursor-pointer hover:border-teal-500/50 transition-colors">
+                <div class="text-5xl mb-3">🌊</div>
+                <p class="font-medium text-neutral-300">Your flow starts here</p>
+                <p class="text-xs text-neutral-500 mt-1">Tap to add your first transaction</p>
+            </div>
+        `
+        return
+    }
     
     recent.forEach(t => {
         const div = document.createElement('div')
@@ -85,18 +91,19 @@ function renderRecent() {
         `
         container.appendChild(div)
     })
-    
-    if (recent.length === 0) {
-        container.innerHTML = `<p class="text-center text-neutral-500 py-8">No transactions yet.<br>Tap + to start your flow</p>`
-    }
 }
 
-// Render full transaction list
+// Render full list
 function renderFullList(filtered = null) {
     const container = document.getElementById('full-transaction-list')
     container.innerHTML = ''
     
     const list = filtered || [...transactions].reverse()
+    
+    if (list.length === 0) {
+        container.innerHTML = `<p class="text-center text-neutral-500 py-12">No transactions yet</p>`
+        return
+    }
     
     list.forEach((t, index) => {
         const div = document.createElement('div')
@@ -123,9 +130,7 @@ function renderFullList(filtered = null) {
 
 // Calculate totals
 function calculateTotals() {
-    let income = 0
-    let expense = 0
-    
+    let income = 0, expense = 0
     const now = new Date()
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
     
@@ -137,7 +142,6 @@ function calculateTotals() {
     })
     
     const balance = income - expense
-    
     document.getElementById('balance').textContent = formatMoney(balance)
     document.getElementById('income-total').textContent = formatMoney(income)
     document.getElementById('expense-total').textContent = formatMoney(expense)
@@ -145,22 +149,24 @@ function calculateTotals() {
     return {income, expense}
 }
 
-// Category breakdown
+// Render breakdown
 function renderBreakdown() {
     const container = document.getElementById('category-breakdown')
     container.innerHTML = ''
     
     const spentByCat = {}
     transactions.forEach(t => {
-        if (t.type === 1) {
-            spentByCat[t.category] = (spentByCat[t.category] || 0) + t.amount
-        }
+        if (t.type === 1) spentByCat[t.category] = (spentByCat[t.category] || 0) + t.amount
     })
+    
+    if (Object.keys(spentByCat).length === 0) {
+        container.innerHTML = `<p class="text-neutral-500 text-center py-6">No expenses yet</p>`
+        return
+    }
     
     Object.keys(spentByCat).slice(0, 5).forEach(cat => {
         const amount = spentByCat[cat]
         const catInfo = categories.find(c => c.name === cat) || {emoji: '📦', color: '#64748b'}
-        
         const percent = Math.min(Math.floor((amount / 800) * 100), 100)
         
         const div = document.createElement('div')
@@ -180,7 +186,7 @@ function renderBreakdown() {
     })
 }
 
-// Budget list
+// Render budgets
 function renderBudgets() {
     const container = document.getElementById('budget-list')
     container.innerHTML = ''
@@ -217,7 +223,7 @@ function renderBudgets() {
     })
 }
 
-// Pie chart colors (fixed order)
+// Update pie
 function updatePieChart() {
     const pie = document.getElementById('pie-chart')
     const colors = ['#14b8a6', '#22d3ee', '#f43f5e', '#a78bfa', '#eab308']
@@ -233,10 +239,7 @@ function updatePieChart() {
         angle += slice
     })
     
-    if (angle < 360) stops += `#27272a ${angle}deg 360deg`
-    else stops = stops.slice(0, -2)
-    
-    pie.style.background = `conic-gradient(${stops})`
+    pie.style.background = stops ? `conic-gradient(${stops.slice(0,-2)})` : 'conic-gradient(#27272a 0deg 360deg)'
 }
 
 // Render insights
@@ -244,34 +247,53 @@ function renderInsights() {
     const {expense} = calculateTotals()
     document.getElementById('spent-this-month').textContent = formatMoney(expense)
     
-    // Biggest spend
     const spentByCat = {}
     transactions.filter(t => t.type === 1).forEach(t => {
         spentByCat[t.category] = (spentByCat[t.category] || 0) + t.amount
     })
+    
     const biggest = Object.entries(spentByCat).sort((a,b) => b[1]-a[1])[0]
     if (biggest) {
         document.getElementById('biggest-spend').textContent = biggest[0]
         document.getElementById('biggest-amount').textContent = formatMoney(biggest[1])
+    } else {
+        document.getElementById('biggest-spend').textContent = '—'
+        document.getElementById('biggest-amount').textContent = '$0'
     }
     
-    // Avg daily
-    const avg = expense / 30
+    const avg = expense / 30 || 0
     document.getElementById('avg-daily').textContent = formatMoney(Math.floor(avg))
 }
 
-// Add transaction
+// Type selection (now FIXED - mutually exclusive)
 function setType(type) {
     currentType = type
-    document.getElementById('type-0').classList.toggle('bg-emerald-500', type === 0)
-    document.getElementById('type-1').classList.toggle('bg-rose-500', type === 1)
+    
+    const incBtn = document.getElementById('type-0')
+    const expBtn = document.getElementById('type-1')
+    
+    if (type === 0) {
+        incBtn.classList.add('bg-emerald-500', 'text-white')
+        expBtn.classList.remove('bg-rose-500', 'text-white')
+    } else {
+        expBtn.classList.add('bg-rose-500', 'text-white')
+        incBtn.classList.remove('bg-emerald-500', 'text-white')
+    }
 }
 
+// Show modal (defaults to Expense)
 function showAddModal() {
     document.getElementById('add-modal').classList.remove('hidden')
     document.getElementById('add-modal').classList.add('flex')
     
-    // Render category picker
+    // Reset to clean state
+    document.getElementById('amount-input').value = ''
+    document.getElementById('note-input').value = ''
+    
+    // Set default to Expense
+    setType(1)
+    
+    // Render categories
     const picker = document.getElementById('category-picker')
     picker.innerHTML = ''
     categories.forEach(cat => {
@@ -280,12 +302,11 @@ function showAddModal() {
         div.innerHTML = `<div class="text-5xl mb-1">${cat.emoji}</div><span class="text-xs">${cat.name}</span>`
         div.onclick = () => {
             selectedCategory = cat
-            showAddModal() // refresh selection
+            showAddModal()
         }
         picker.appendChild(div)
     })
     
-    // Default amount
     document.getElementById('amount-input').focus()
 }
 
@@ -296,10 +317,13 @@ function hideAddModal() {
 }
 
 function addTransaction() {
-    const amountStr = document.getElementById('amount-input').value
+    const amountStr = document.getElementById('amount-input').value.trim()
     const note = document.getElementById('note-input').value.trim()
     
-    if (!amountStr) return
+    if (!amountStr || parseFloat(amountStr) <= 0) {
+        alert("Please enter a valid amount greater than 0")
+        return
+    }
     
     const amount = parseFloat(amountStr)
     
@@ -312,20 +336,18 @@ function addTransaction() {
         amount: amount,
         category: selectedCategory.name,
         emoji: selectedCategory.emoji,
-        note: note || '',
+        note: note || selectedCategory.name,
         date: date
     })
     
     saveData()
     hideAddModal()
-    
     refreshAll()
     
-    // Confetti on income
     if (currentType === 0) triggerConfetti()
 }
 
-// Delete transaction
+// Delete
 function deleteTransaction(index) {
     if (confirm('Delete this entry?')) {
         transactions.splice(index, 1)
@@ -334,16 +356,15 @@ function deleteTransaction(index) {
     }
 }
 
-// Filter transactions
+// Filter
 function filterTransactions() {
     const term = document.getElementById('search-input').value.toLowerCase().trim()
     if (!term) {
         renderFullList()
         return
     }
-    
     const filtered = transactions.filter(t => 
-        (t.note && t.note.toLowerCase().includes(term)) ||
+        (t.note && t.note.toLowerCase().includes(term)) || 
         t.category.toLowerCase().includes(term)
     )
     renderFullList(filtered)
@@ -360,30 +381,19 @@ function refreshAll() {
     renderInsights()
 }
 
-// Reset budgets
 function resetBudgets() {
-    if (confirm('Reset all category budgets?')) {
-        budgets = {
-            "Food": 350, "Transport": 150, "Shopping": 200,
-            "Bills": 400, "Entertainment": 120, "Health": 80
-        }
+    if (confirm('Reset all budgets?')) {
+        budgets = {"Food":350,"Transport":150,"Shopping":200,"Bills":400,"Entertainment":120,"Health":80}
         saveData()
         renderBudgets()
     }
 }
 
-// Simple confetti
+// Confetti
 function triggerConfetti() {
     const canvas = document.createElement('canvas')
-    canvas.style.position = 'fixed'
-    canvas.style.top = '0'
-    canvas.style.left = '0'
-    canvas.style.width = '100%'
-    canvas.style.height = '100%'
-    canvas.style.pointerEvents = 'none'
-    canvas.style.zIndex = '9999'
+    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;'
     document.body.appendChild(canvas)
-    
     const ctx = canvas.getContext('2d')
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
@@ -395,7 +405,7 @@ function triggerConfetti() {
             y: Math.random() * canvas.height * 0.4,
             size: Math.random() * 8 + 5,
             speedY: Math.random() * 4 + 3,
-            color: ['#14b8a6', '#67e8f9', '#a5f3fc'][Math.floor(Math.random()*3)]
+            color: ['#14b8a6','#67e8f9','#a5f3fc'][Math.floor(Math.random()*3)]
         })
     }
     
@@ -404,8 +414,8 @@ function triggerConfetti() {
         particles.forEach((p, i) => {
             p.y += p.speedY
             ctx.fillStyle = p.color
-            ctx.fillRect(p.x, p.y, p.size, p.size * 0.6)
-            if (p.y > canvas.height) particles.splice(i, 1)
+            ctx.fillRect(p.x, p.y, p.size, p.size*0.6)
+            if (p.y > canvas.height) particles.splice(i,1)
         })
         if (particles.length > 0) requestAnimationFrame(animate)
         else canvas.remove()
@@ -418,9 +428,7 @@ function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'))
     document.getElementById(['tab-overview','tab-transactions','tab-budget','tab-insights'][tab]).classList.remove('hidden')
     
-    document.querySelectorAll('.nav-item').forEach((el, i) => {
-        el.classList.toggle('text-teal-400', i === tab)
-    })
+    document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('text-teal-400', i===tab))
     
     if (tab === 1) renderFullList()
     if (tab === 3) renderInsights()
@@ -433,18 +441,7 @@ function initializePulse() {
     refreshAll()
     switchTab(0)
     
-    // Demo data if empty
-    if (transactions.length === 0) {
-        transactions = [
-            {id:1,type:1,amount:7.5,category:"Food",emoji:"🍔",note:"Lunch",date:"2026-03-05"},
-            {id:2,type:0,amount:3200,category:"Income",emoji:"💰",note:"Salary",date:"2026-03-01"},
-            {id:3,type:1,amount:42,category:"Transport",emoji:"🚕",note:"Uber",date:"2026-03-04"}
-        ]
-        saveData()
-        refreshAll()
-    }
-    
-    console.log('%c✨ Pulse ready – track your money flow offline', 'color:#14b8a6; font-family:monospace')
+    console.log('%c✨ Pulse v2 ready — clean & fixed', 'color:#14b8a6; font-family:monospace')
 }
 
 window.onload = initializePulse
