@@ -1,16 +1,56 @@
-/* style.css - unchanged except one tiny addition */
+/* style.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-body { font-family: 'Inter', system_ui, sans-serif; }
-h1 { font-family: 'Space Grotesk', sans-serif; }
-.tab-content { animation: fadeIn 0.4s ease forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+body {
+    font-family: 'Inter', system_ui, sans-serif;
+}
 
-.transaction:active { transform: scale(0.98); }
-#pie-chart { box-shadow: 0 0 60px -10px rgb(45 212 191); transition: transform 0.4s ease; }
-#pie-chart:hover { transform: scale(1.04); }
-.progress-bar { height: 6px; background: linear-gradient(90deg, #14b8a6, #67e8f9); border-radius: 9999px; transition: width 800ms cubic-bezier(0.34, 1.56, 0.64, 1); }
-.empty-state { border: 2px dashed #27272a; }
+h1 {
+    font-family: 'Space Grotesk', sans-serif;
+}
 
-/* New toast animation */
-#toast { transition: all 0.3s ease; }
+.tab-content {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Transaction row */
+.transaction {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transaction:active {
+    transform: scale(0.98);
+}
+
+/* Pie chart */
+#pie-chart {
+    box-shadow: 0 0 60px -10px rgb(45 212 191);
+    transition: transform 0.4s ease;
+}
+
+#pie-chart:hover {
+    transform: scale(1.04);
+}
+
+/* Progress bars */
+.progress-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #14b8a6, #67e8f9);
+    border-radius: 9999px;
+    transition: width 800ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Empty state */
+.empty-state {
+    border: 2px dashed #27272a;
+}
+
+/* Toast animation */
+#toast {
+    transition: all 0.3s ease;
+}
