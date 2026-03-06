@@ -56,7 +56,7 @@ function renderQuickCategories() {
     })
 }
 
-// Render recent (with empty state)
+// Render recent
 function renderRecent() {
     const container = document.getElementById('recent-list')
     container.innerHTML = ''
@@ -265,7 +265,7 @@ function renderInsights() {
     document.getElementById('avg-daily').textContent = formatMoney(Math.floor(avg))
 }
 
-// Type selection (now FIXED - mutually exclusive)
+// Type selection (mutually exclusive)
 function setType(type) {
     currentType = type
     
@@ -281,19 +281,16 @@ function setType(type) {
     }
 }
 
-// Show modal (defaults to Expense)
+// Show modal
 function showAddModal() {
     document.getElementById('add-modal').classList.remove('hidden')
     document.getElementById('add-modal').classList.add('flex')
     
-    // Reset to clean state
     document.getElementById('amount-input').value = ''
     document.getElementById('note-input').value = ''
     
-    // Set default to Expense
     setType(1)
     
-    // Render categories
     const picker = document.getElementById('category-picker')
     picker.innerHTML = ''
     categories.forEach(cat => {
@@ -381,11 +378,27 @@ function refreshAll() {
     renderInsights()
 }
 
+// FIXED RESET + TOAST
+function showToast(msg) {
+    const toast = document.getElementById('toast')
+    document.getElementById('toast-text').textContent = msg
+    toast.classList.remove('hidden')
+    setTimeout(() => toast.classList.add('hidden'), 2200)
+}
+
 function resetBudgets() {
-    if (confirm('Reset all budgets?')) {
-        budgets = {"Food":350,"Transport":150,"Shopping":200,"Bills":400,"Entertainment":120,"Health":80}
+    if (confirm('Reset ALL budgets to default values?')) {
+        budgets = {
+            "Food": 350,
+            "Transport": 150,
+            "Shopping": 200,
+            "Bills": 400,
+            "Entertainment": 120,
+            "Health": 80
+        }
         saveData()
-        renderBudgets()
+        refreshAll()
+        showToast('✅ Budgets reset to default')
     }
 }
 
@@ -441,7 +454,7 @@ function initializePulse() {
     refreshAll()
     switchTab(0)
     
-    console.log('%c✨ Pulse v2 ready — clean & fixed', 'color:#14b8a6; font-family:monospace')
+    console.log('%c✨ Pulse v2.1 ready — reset button fixed', 'color:#14b8a6; font-family:monospace')
 }
 
 window.onload = initializePulse
